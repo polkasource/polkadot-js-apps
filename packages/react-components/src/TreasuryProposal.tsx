@@ -23,7 +23,7 @@ interface Props {
   withLink?: boolean;
 }
 
-function TreasuryProposal ({ className, asInset, insetProps, onClick, proposal, proposalId }: Props): React.ReactElement<Props> | null {
+function TreasuryProposal ({ asInset, className, insetProps, onClick, proposal, proposalId }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const [stateProposal, setProposal] = useState<TreasuryProposalType | null>(null);
   const { api } = useApi();
@@ -44,22 +44,22 @@ function TreasuryProposal ({ className, asInset, insetProps, onClick, proposal, 
     return null;
   }
 
-  const { bond, beneficiary, proposer, value } = stateProposal;
+  const { beneficiary, bond, proposer, value } = stateProposal;
 
   const inner = (
     <>
       <Labelled label={t('proposed by')}>
         <InputAddress
-          isDisabled
           defaultValue={proposer}
+          isDisabled
           value={proposer}
           withLabel={false}
         />
       </Labelled>
       <Labelled label={t('beneficiary')}>
         <InputAddress
-          isDisabled
           defaultValue={beneficiary}
+          isDisabled
           value={beneficiary}
           withLabel={false}
         />

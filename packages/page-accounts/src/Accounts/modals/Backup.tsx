@@ -5,7 +5,7 @@
 import { BareProps } from '@polkadot/react-components/types';
 
 import FileSaver from 'file-saver';
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { AddressRow, Button, Modal, Password } from '@polkadot/react-components';
 import keyring from '@polkadot/ui-keyring';
 
@@ -34,29 +34,37 @@ function Backup ({ address, onClose }: Props): React.ReactElement<Props> {
     keyring.isPassValid(password) && !backupFailed,
   [password, backupFailed]);
 
-  const _onChangePass = (value: string): void => {
-    if (!isPassTouched) {
-      setIsPassTouched(true);
-    }
+  const _onChangePass = useCallback(
+    (value: string): void => {
+      if (!isPassTouched) {
+        setIsPassTouched(true);
+      }
 
-    setBackupFailed(false);
-    setPassword(value);
-  };
-  const _doBackup = (): void => {
-    try {
-      const addressKeyring = address && keyring.getPair(address);
-      const json = addressKeyring && keyring.backupAccount(addressKeyring, password);
-      const blob = new Blob([JSON.stringify(json)], { type: 'application/json; charset=utf-8' });
+      setBackupFailed(false);
+      setPassword(value);
+    },
+    [isPassTouched]
+  );
 
-      FileSaver.saveAs(blob, `${address}.json`);
-    } catch (error) {
-      setBackupFailed(true);
-      console.error(error);
-      return;
-    }
+  const _doBackup = useCallback(
+    (): void => {
+      try {
+        const addressKeyring = address && keyring.getPair(address);
+        const json = addressKeyring && keyring.backupAccount(addressKeyring, password);
+        const blob = new Blob([JSON.stringify(json)], { type: 'application/json; charset=utf-8' });
 
-    onClose();
-  };
+        FileSaver.saveAs(blob, `${address}.json`);
+      } catch (error) {
+        setBackupFailed(true);
+        console.error(error);
+
+        return;
+      }
+
+      onClose();
+    },
+    [address, onClose, password]
+  );
 
   return (
     <Modal
@@ -68,8 +76,8 @@ function Backup ({ address, onClose }: Props): React.ReactElement<Props> {
         doBackup={_doBackup}
         isPassTouched={isPassTouched}
         isPassValid={isPassValid}
-        password={password}
         onChangePass={_onChangePass}
+        password={password}
       />
       <Modal.Actions onCancel={onClose}>
         <Button

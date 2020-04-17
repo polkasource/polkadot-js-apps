@@ -6,9 +6,9 @@ import { KeyringPair } from '@polkadot/keyring/types';
 import { ActionStatus } from '@polkadot/react-components/Status/types';
 import { KeypairType } from '@polkadot/util-crypto/types';
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { AddressRow, Button, Input, InputAddress, Modal, Password, StatusContext } from '@polkadot/react-components';
-import { useDebounce } from '@polkadot/react-hooks';
+import { useDebounce, useToggle } from '@polkadot/react-hooks';
 import keyring from '@polkadot/ui-keyring';
 import { keyExtractPath } from '@polkadot/util-crypto';
 
@@ -49,7 +49,7 @@ function createAccount (source: KeyringPair, suri: string, name: string, passwor
   try {
     const derived = source.derive(suri);
 
-    derived.setMeta({ ...derived.meta, name, tags: [] });
+    derived.setMeta({ ...derived.meta, name, parentAddress: source.address, tags: [] });
 
     const result = keyring.addPair(derived, password || '');
     const { address } = result.pair;
@@ -72,7 +72,7 @@ function Derive ({ className, from, onClose }: Props): React.ReactElement {
   const { queueAction } = useContext(StatusContext);
   const [source] = useState(keyring.getPair(from));
   const [{ address, deriveError }, setDerive] = useState<DeriveAddress>({ address: null, deriveError: null });
-  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [isConfirmationOpen, toggleConfirmation] = useToggle();
   const [isLocked, setIsLocked] = useState(source.isLocked);
   const [{ isNameValid, name }, setName] = useState({ isNameValid: false, name: '' });
   const [{ isPassValid, password }, setPassword] = useState({ isPassValid: false, password: '' });
@@ -101,34 +101,48 @@ function Derive ({ className, from, onClose }: Props): React.ReactElement {
     });
   }, [debouncedSuri, source]);
 
-  const _onChangeName = (name: string): void =>
-    setName({ isNameValid: !!name.trim(), name });
-  const _onChangePass = (password: string): void =>
-    setPassword({ isPassValid: keyring.isPassValid(password), password });
-  const _onChangePass2 = (password2: string): void =>
-    setPassword2({ isPass2Valid: keyring.isPassValid(password2) && (password2 === password), password2 });
-  const _toggleConfirmation = (): void => setIsConfirmationOpen(!isConfirmationOpen);
-  const _onUnlock = (): void => {
-    try {
-      source.decodePkcs8(rootPass);
-    } catch (error) {
-      console.error(error);
-    }
+  const _onChangeName = useCallback(
+    (name: string) => setName({ isNameValid: !!name.trim(), name }),
+    []
+  );
 
-    setIsLocked(source.isLocked);
-  };
+  const _onChangePass = useCallback(
+    (password: string) => setPassword({ isPassValid: keyring.isPassValid(password), password }),
+    []
+  );
 
-  const _onCommit = (): void => {
-    if (!isValid) {
-      return;
-    }
+  const _onChangePass2 = useCallback(
+    (password2: string) => setPassword2({ isPass2Valid: keyring.isPassValid(password2) && (password2 === password), password2 }),
+    [password]
+  );
 
-    const status = createAccount(source, suri, name, password, t('created account'));
+  const _onUnlock = useCallback(
+    (): void => {
+      try {
+        source.decodePkcs8(rootPass);
+      } catch (error) {
+        console.error(error);
+      }
 
-    _toggleConfirmation();
-    queueAction(status);
-    onClose();
-  };
+      setIsLocked(source.isLocked);
+    },
+    [rootPass, source]
+  );
+
+  const _onCommit = useCallback(
+    (): void => {
+      if (!isValid) {
+        return;
+      }
+
+      const status = createAccount(source, suri, name, password, t('created account'));
+
+      toggleConfirmation();
+      queueAction(status);
+      onClose();
+    },
+    [isValid, name, onClose, password, queueAction, source, suri, t, toggleConfirmation]
+  );
 
   const sourceStatic = (
     <InputAddress
@@ -148,8 +162,8 @@ function Derive ({ className, from, onClose }: Props): React.ReactElement {
         <CreateConfirmation
           address={address}
           name={name}
+          onClose={toggleConfirmation}
           onCommit={_onCommit}
-          onClose={_toggleConfirmation}
         />
       )}
       <Modal.Content>
@@ -227,7 +241,7 @@ function Derive ({ className, from, onClose }: Props): React.ReactElement {
               isDisabled={!isValid}
               isPrimary
               label={t('Save')}
-              onClick={_toggleConfirmation}
+              onClick={toggleConfirmation}
             />
           )
         }

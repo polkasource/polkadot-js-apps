@@ -46,21 +46,32 @@ function Tooltip ({ className, effect = 'solid', offset, place = 'top', text, tr
 
   return ReactDOM.createPortal(
     <ReactTooltip
-      id={trigger}
+      className={classes('ui--Tooltip', className)}
       effect={effect}
+      id={trigger}
       offset={offset}
       place={place}
-      className={classes('ui--Tooltip', className)}
     >
-      {text}
+      {className?.includes('address') ? <div>{text}</div> : text}
     </ReactTooltip>,
     tooltipContainer
   );
 }
 
 export default React.memo(styled(Tooltip)`
+  > div {
+    overflow: hidden;
+  }
+
+  &.address div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   table {
     border: 0;
+    overflow: hidden;
+    width: 100%;
 
     td {
       text-align: left;
@@ -80,7 +91,16 @@ export default React.memo(styled(Tooltip)`
   }
 
   .faded {
+    margin-top: -0.25rem;
     opacity: 0.75 !important;
     font-size: 0.75em !important;
+  }
+
+  .faded+.faded {
+    margin-top: -0.5rem;
+  }
+
+  .row+.row {
+    margin-top: 0.5rem;
   }
 `);

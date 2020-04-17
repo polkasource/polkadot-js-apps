@@ -17,13 +17,13 @@ function Propose ({ className }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const [accountId, setAccountId] = useState<string | null>(null);
   const [beneficiary, setBeneficiary] = useState<string | null>(null);
-  const [isProposeOpen, togglePropose] = useToggle();
+  const [isOpen, toggleOpen] = useToggle();
   const [value, setValue] = useState<BN | undefined>();
   const hasValue = value?.gtn(0);
 
   return (
     <>
-      {isProposeOpen && (
+      {isOpen && (
         <Modal
           className={className}
           header={t('Submit treasury proposal')}
@@ -39,27 +39,27 @@ function Propose ({ className }: Props): React.ReactElement<Props> | null {
             />
             <InputAddress
               className='medium'
-              label={t('beneficiary')}
               help={t('The account to which the proposed balance will be transferred if approved')}
-              type='allPlus'
+              label={t('beneficiary')}
               onChange={setBeneficiary}
+              type='allPlus'
             />
             <InputBalance
               className='medium'
-              isError={!hasValue}
               help={t('The amount that will be allocated from the treasury pot')}
+              isError={!hasValue}
               label={t('value')}
               onChange={setValue}
             />
           </Modal.Content>
-          <Modal.Actions onCancel={togglePropose}>
+          <Modal.Actions onCancel={toggleOpen}>
             <TxButton
               accountId={accountId}
               icon='add'
               isDisabled={!accountId || !hasValue}
               isPrimary
               label={t('Submit proposal')}
-              onStart={togglePropose}
+              onStart={toggleOpen}
               params={[value, beneficiary]}
               tx='treasury.proposeSpend'
             />
@@ -67,9 +67,9 @@ function Propose ({ className }: Props): React.ReactElement<Props> | null {
         </Modal>
       )}
       <Button
-        icon='check'
+        icon='plus'
         label={t('Submit proposal')}
-        onClick={togglePropose}
+        onClick={toggleOpen}
       />
     </>
   );

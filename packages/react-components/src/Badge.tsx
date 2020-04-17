@@ -40,8 +40,8 @@ function Badge ({ className, hover, info, isGray, isInline, isSmall, isTooltip, 
       </div>
       {hover && (
         <Tooltip
-          trigger={trigger}
           text={hover}
+          trigger={trigger}
         />
       )}
     </div>
@@ -88,6 +88,7 @@ export default React.memo(styled(Badge)`
   &.isInline {
     display: inline-block;
     margin-right: 0.25rem;
+    vertical-align: middle;
   }
 
   &.next,

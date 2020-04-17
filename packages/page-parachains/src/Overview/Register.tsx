@@ -35,7 +35,7 @@ const ONE_THOUSAND = new BN(1000);
 function Register ({ nextFreeId = ONE_THOUSAND, sudoKey }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const { api } = useApi();
-  const { isOpen, onOpen, onClose } = useModal();
+  const { isOpen, onClose, onOpen } = useModal();
   const onSendRef = useRef<() => void>();
   const isWasmValidRef = useRef(false);
 
@@ -69,6 +69,7 @@ function Register ({ nextFreeId = ONE_THOUSAND, sudoKey }: Props): React.ReactEl
         );
       } catch (error) {
         console.log(error);
+
         return null;
       }
     },
@@ -79,8 +80,8 @@ function Register ({ nextFreeId = ONE_THOUSAND, sudoKey }: Props): React.ReactEl
     <>
       <div className='ui--Row-buttons'>
         <Button
-          label={t('Register a parachain')}
           icon='add'
+          label={t('Register a parachain')}
           onClick={onOpen}
         />
       </div>
@@ -93,9 +94,9 @@ function Register ({ nextFreeId = ONE_THOUSAND, sudoKey }: Props): React.ReactEl
           <Modal.Content>
             <InputNumber
               defaultValue={nextFreeId}
-              label={t('parachain id')}
               help={t('The id number to assign to this parachain.')}
               isError={!isIdValid}
+              label={t('parachain id')}
               onChange={setId}
               onEnter={onSendRef.current}
               onEscape={onClose}

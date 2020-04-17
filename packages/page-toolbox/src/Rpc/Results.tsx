@@ -15,9 +15,7 @@ interface Props extends BareProps {
 
 function Results ({ queue = [] }: Props): React.ReactElement<Props> | null {
   const filtered = queue
-    .filter(({ error, result }): boolean =>
-      !isUndefined(error) || !isUndefined(result)
-    )
+    .filter(({ error, result }) => !isUndefined(error) || !isUndefined(result))
     .reverse();
 
   if (!filtered.length) {
@@ -26,7 +24,7 @@ function Results ({ queue = [] }: Props): React.ReactElement<Props> | null {
 
   return (
     <section className='rpc--Results'>
-      {filtered.map(({ error, id, result, rpc: { section, method } }): React.ReactNode => (
+      {filtered.map(({ error, id, result, rpc: { method, section } }): React.ReactNode => (
         <Output
           isError={!!error}
           key={id}

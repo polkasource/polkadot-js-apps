@@ -31,12 +31,12 @@ function getRandomColor (): string {
 }
 
 const initialState = {
-  decimals: 0,
-  prefix: 0,
-  unit: 'UNIT',
-  title: '',
   color: '#FFFFFF',
-  genesisHash: ''
+  decimals: 0,
+  genesisHash: '',
+  prefix: 0,
+  title: '',
+  unit: 'UNIT'
 };
 
 function NetworkSpecs ({ chainInfo, className }: Props): React.ReactElement<Props> {
@@ -44,24 +44,28 @@ function NetworkSpecs ({ chainInfo, className }: Props): React.ReactElement<Prop
   const { isApiReady, systemChain } = useApi();
   const [qrData, setQrData] = useState<NetworkSpecsStruct>(initialState);
   const debouncedQrData = useDebounce(qrData, 500);
+
   const reducer = (state: NetworkSpecsStruct, delta: Partial<NetworkSpecsStruct>): NetworkSpecsStruct => {
     const newState = {
       ...state,
       ...delta
     };
+
     setQrData(newState);
+
     return newState;
   };
+
   const [networkSpecs, setNetworkSpecs] = useReducer(reducer, initialState);
 
   useEffect((): void => {
     chainInfo && setNetworkSpecs({
       color: chainInfo.color || getRandomColor(),
       decimals: chainInfo.tokenDecimals,
+      genesisHash: chainInfo.genesisHash,
       prefix: chainInfo.ss58Format,
-      unit: chainInfo.tokenSymbol,
       title: systemChain,
-      genesisHash: chainInfo.genesisHash
+      unit: chainInfo.tokenSymbol
     });
   }, [chainInfo, systemChain]);
 
@@ -102,9 +106,9 @@ function NetworkSpecs ({ chainInfo, className }: Props): React.ReactElement<Prop
         >
           <div className='settings--networkSpecs-colorButton'>
             <Button
-              label={t('Random')}
               icon='sync'
               key='spread'
+              label={t('Random')}
               onClick={_onSetRandomColor}
             />
             <ChainColorIndicator color={networkSpecs.color}/>
@@ -126,7 +130,7 @@ function NetworkSpecs ({ chainInfo, className }: Props): React.ReactElement<Prop
         />
         <Input
           className='full'
-          help={t('Prefix indicates the his network, is a number between 0 ~ 255 describes the precise format of the bytes of the address')}
+          help={t('Prefix indicates the ss58 address format in this network, it is a number between 0 ~ 255 that describes the precise format of the bytes of the address')}
           isDisabled
           label={t('Address Prefix')}
           value={networkSpecs.prefix}

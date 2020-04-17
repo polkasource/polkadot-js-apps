@@ -5,7 +5,7 @@
 import { DeriveDispatch } from '@polkadot/api-derive/types';
 
 import React from 'react';
-import { Spinner, Table } from '@polkadot/react-components';
+import { Table } from '@polkadot/react-components';
 import { useApi, useCall } from '@polkadot/react-hooks';
 
 import { useTranslation } from '../translate';
@@ -18,29 +18,25 @@ interface Props {
 function DispatchQueue ({ className }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const { api } = useApi();
-  const queued = useCall<DeriveDispatch[]>(api.derive.democracy.dispatchQueue as any, []);
+  const queued = useCall<DeriveDispatch[]>(api.derive.democracy.dispatchQueue, []);
 
   return (
-    <div className={`proposalSection ${className}`}>
-      <h1>{t('dispatch queue')}</h1>
-      {queued
-        ? queued.length
-          ? (
-            <Table>
-              <Table.Body>
-                {queued.map((entry): React.ReactNode => (
-                  <DispatchEntry
-                    key={entry.index.toString()}
-                    value={entry}
-                  />
-                ))}
-              </Table.Body>
-            </Table>
-          )
-          : t('Nothing queued for execution')
-        : <Spinner />
-      }
-    </div>
+    <Table
+      className={className}
+      empty={queued && t('Nothing queued for execution')}
+      header={[
+        [t('dispatch queue'), 'start', 2],
+        [t('enact')],
+        [undefined, undefined, 2]
+      ]}
+    >
+      {queued?.map((entry): React.ReactNode => (
+        <DispatchEntry
+          key={entry.index.toString()}
+          value={entry}
+        />
+      ))}
+    </Table>
   );
 }
 

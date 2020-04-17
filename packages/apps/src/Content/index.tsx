@@ -58,7 +58,7 @@ function Content ({ className }: Props): React.ReactElement<Props> {
         : (
           <>
             <Suspense fallback='...'>
-              <ErrorBoundary>
+              <ErrorBoundary trigger={name}>
                 <Component
                   basePath={`/${name}`}
                   location={location}
@@ -79,7 +79,7 @@ function Content ({ className }: Props): React.ReactElement<Props> {
 }
 
 export default React.memo(styled(Content)`
-  background: #fafafa;
+  background: #f5f5f5;
   display: flex;
   flex-direction: column;
   flex-grow: 1;

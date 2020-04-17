@@ -32,7 +32,7 @@ interface Props extends BareProps {
 
 function Call (props: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
-  const { className, isOpen, callContract, callMessageIndex, onChangeCallContractAddress, onChangeCallMessageIndex, onClose } = props;
+  const { callContract, callMessageIndex, className, isOpen, onChangeCallContractAddress, onChangeCallMessageIndex, onClose } = props;
   const hasRpc = callContract?.hasRpcContractsCall;
   const callMessage = callContract?.getMessage(isNull(callMessageIndex) ? undefined : callMessageIndex);
 
@@ -105,6 +105,7 @@ function Call (props: Props): React.ReactElement<Props> | null {
   };
 
   const _onClearOutcomes = (): void => setOutcomes([]);
+
   const _onClearOutcome = (outcomeIndex: number) => (): void => {
     setOutcomes(outcomes.slice(0, outcomeIndex).concat(outcomes.slice(outcomeIndex + 1)));
   };

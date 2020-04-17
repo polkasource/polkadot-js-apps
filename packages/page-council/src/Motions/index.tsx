@@ -7,9 +7,9 @@ import { AccountId } from '@polkadot/types/interfaces';
 
 import React from 'react';
 import { Button, Table } from '@polkadot/react-components';
+import { useMembers } from '@polkadot/react-hooks';
 
 import { useTranslation } from '../translate';
-import useCouncilMembers from '../useCouncilMembers';
 import Motion from './Motion';
 import ProposeMotion from './ProposeMotion';
 import ProposeExternal from './ProposeExternal';
@@ -23,13 +23,12 @@ interface Props {
 
 function Proposals ({ className, motions, prime }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const { isMember, members } = useCouncilMembers();
+  const { isMember, members } = useMembers();
 
   return (
     <div className={className}>
       <Button.Group>
         <ProposeMotion
-          filter={members}
           isMember={isMember}
           members={members}
         />
@@ -44,24 +43,27 @@ function Proposals ({ className, motions, prime }: Props): React.ReactElement<Pr
           members={members}
         />
       </Button.Group>
-      {motions?.length
-        ? (
-          <Table>
-            <Table.Body>
-              {motions?.map((motion: DeriveCollectiveProposal): React.ReactNode => (
-                <Motion
-                  isMember={isMember}
-                  key={motion.hash.toHex()}
-                  members={members}
-                  motion={motion}
-                  prime={prime}
-                />
-              ))}
-            </Table.Body>
-          </Table>
-        )
-        : t('No council motions')
-      }
+      <Table
+        empty={motions && t('No council motions')}
+        header={[
+          [t('motions'), 'start', 2],
+          [t('threshold')],
+          [t('voting end')],
+          [t('aye'), 'address'],
+          [t('nay'), 'address'],
+          [undefined, undefined, 2]
+        ]}
+      >
+        {motions?.map((motion: DeriveCollectiveProposal): React.ReactNode => (
+          <Motion
+            isMember={isMember}
+            key={motion.hash.toHex()}
+            members={members}
+            motion={motion}
+            prime={prime}
+          />
+        ))}
+      </Table>
     </div>
   );
 }

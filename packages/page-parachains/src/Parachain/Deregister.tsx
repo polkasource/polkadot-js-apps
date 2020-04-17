@@ -34,6 +34,7 @@ function Deregister ({ id, info, isOpen, onClose, onSubmit, sudoKey }: Props): R
         return api.tx.registrar.deregisterPara(id);
       } catch (error) {
         console.log(error);
+
         return null;
       }
     },
@@ -48,8 +49,8 @@ function Deregister ({ id, info, isOpen, onClose, onSubmit, sudoKey }: Props): R
   return (
     <Modal
       header={t('Deregister this parachain')}
-      open={isOpen}
       onClose={onClose}
+      open={isOpen}
       small
     >
       <Modal.Content>

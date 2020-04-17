@@ -8,9 +8,6 @@ import BN from 'bn.js';
 import React from 'react';
 import { AddressMini, Expander } from '@polkadot/react-components';
 import { FormatBalance } from '@polkadot/react-query';
-import { formatNumber } from '@polkadot/util';
-
-import { useTranslation } from '../../translate';
 
 interface Props {
   stakeOther?: BN;
@@ -18,17 +15,15 @@ interface Props {
 }
 
 function StakeOther ({ nominators, stakeOther }: Props): React.ReactElement<Props> {
-  const { t } = useTranslation();
-
   return (
-    <td className='top'>
+    <td className='number all'>
       {stakeOther?.gtn(0) && (
         <>
-          <label>{t('other stake')}</label>
           <Expander summary={
-            <FormatBalance value={stakeOther}>
-              &nbsp;({formatNumber(nominators.length)})
-            </FormatBalance>
+            <FormatBalance
+              labelPost={` (${nominators.length})`}
+              value={stakeOther}
+            />
           }>
             {nominators.map(([who, bonded]): React.ReactNode =>
               <AddressMini

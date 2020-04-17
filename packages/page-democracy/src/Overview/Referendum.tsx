@@ -7,14 +7,16 @@ import { BlockNumber } from '@polkadot/types/interfaces';
 
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
-import { AddressMini, Button, Expander, LinkExternal, Tag } from '@polkadot/react-components';
+import { Button, LinkExternal, Tag } from '@polkadot/react-components';
 import { useApi, useCall } from '@polkadot/react-hooks';
-import { FormatBalance, BlockToTime } from '@polkadot/react-query';
+import { BlockToTime } from '@polkadot/react-query';
 import { formatNumber, isBoolean } from '@polkadot/util';
 
 import { useTranslation } from '../translate';
+import useChangeCalc from '../useChangeCalc';
 import PreImageButton from './PreImageButton';
 import ProposalCell from './ProposalCell';
+import ReferendumVotes from './ReferendumVotes';
 import Voting from './Voting';
 
 interface Props {
@@ -22,10 +24,11 @@ interface Props {
   value: DeriveReferendumExt;
 }
 
-function Referendum ({ className, value: { allAye, allNay, image, imageHash, index, status, isPassing, voteCountAye, voteCountNay, votedAye, votedNay } }: Props): React.ReactElement<Props> | null {
+function Referendum ({ className, value: { allAye, allNay, image, imageHash, index, isPassing, status, voteCountAye, voteCountNay, votedAye, votedNay, votedTotal } }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const { api } = useApi();
   const bestNumber = useCall<BlockNumber>(api.derive.chain.bestNumber, []);
+  const { changeAye, changeNay } = useChangeCalc(status.threshold, votedAye, votedNay, votedTotal);
   const threshold = useMemo(
     () => status.threshold.type.toString().replace('majority', ' majority '),
     [status]
@@ -40,45 +43,36 @@ function Referendum ({ className, value: { allAye, allNay, image, imageHash, ind
 
   return (
     <tr className={className}>
-      <td className='number top'><h1>{formatNumber(index)}</h1></td>
+      <td className='number'><h1>{formatNumber(index)}</h1></td>
       <ProposalCell
-        className='top'
         imageHash={imageHash}
         proposal={image?.proposal}
       />
-      <td className='number together top'>
-        <label>{t('remaining')}</label>
+      <td className='number together'>
         <BlockToTime blocks={remainBlock} />
         {t('{{blocks}} blocks', { replace: { blocks: formatNumber(remainBlock) } })}
       </td>
-      <td className='number together top'>
-        <label>{t('activate')}</label>
+      <td className='number together'>
         <BlockToTime blocks={enactBlock.sub(bestNumber)} />
         #{formatNumber(enactBlock)}
       </td>
-      <td className='top'>
-        <label>{t('Aye {{count}}', { replace: { count: voteCountAye ? `(${formatNumber(voteCountAye)})` : '' } })}</label>
-        <Expander summary={<FormatBalance value={votedAye} />}>
-          {allAye.map(({ accountId }) =>
-            <AddressMini
-              key={accountId.toString()}
-              value={accountId}
-            />
-          )}
-        </Expander>
-      </td>
-      <td className='top'>
-        <label>{t('Nay {{count}}', { replace: { count: voteCountNay ? `(${formatNumber(voteCountNay)})` : '' } })}</label>
-        <Expander summary={<FormatBalance value={votedNay} />}>
-          {allNay.map(({ accountId }) =>
-            <AddressMini
-              key={accountId.toString()}
-              value={accountId}
-            />
-          )}
-        </Expander>
-      </td>
-      <td className='together top padtop'>
+      <ReferendumVotes
+        change={changeAye}
+        count={voteCountAye}
+        index={index}
+        isWinning={isPassing}
+        total={votedAye}
+        votes={allAye}
+      />
+      <ReferendumVotes
+        change={changeNay}
+        count={voteCountNay}
+        index={index}
+        isWinning={!isPassing}
+        total={votedNay}
+        votes={allNay}
+      />
+      <td>
         {isBoolean(isPassing) && (
           <Tag
             color={isPassing ? 'green' : 'red'}
@@ -87,7 +81,7 @@ function Referendum ({ className, value: { allAye, allNay, image, imageHash, ind
           />
         )}
       </td>
-      <td className='number together top'>
+      <td className='button'>
         <Button.Group>
           <Voting
             proposal={image?.proposal}
@@ -97,9 +91,12 @@ function Referendum ({ className, value: { allAye, allNay, image, imageHash, ind
             <PreImageButton imageHash={imageHash} />
           )}
         </Button.Group>
+      </td>
+      <td className='mini'>
         <LinkExternal
           data={index}
           type='referendum'
+          withShort
         />
       </td>
     </tr>

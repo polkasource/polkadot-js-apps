@@ -21,6 +21,7 @@ export interface Props extends BareProps {
   isOpen?: boolean;
   summary?: React.ReactNode;
   summaryMeta?: Meta;
+  summarySub?: React.ReactNode;
   withDot?: boolean;
   withHidden?: boolean;
 }
@@ -38,7 +39,7 @@ function formatMeta (meta?: Meta): React.ReactNode | null {
     : strings.slice(0, firstEmpty).join(' ');
 }
 
-function Expander ({ children, className, isOpen, summary, summaryMeta, withDot, withHidden }: Props): React.ReactElement<Props> {
+function Expander ({ children, className, isOpen, summary, summaryMeta, summarySub, withDot, withHidden }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [isExpanded, toggleExpanded] = useToggle(isOpen);
   const headerMain = useMemo(
@@ -46,8 +47,8 @@ function Expander ({ children, className, isOpen, summary, summaryMeta, withDot,
     [summary, summaryMeta]
   );
   const headerSub = useMemo(
-    () => summary ? formatMeta(summaryMeta) : null,
-    [summary, summaryMeta]
+    () => summary ? (formatMeta(summaryMeta) || summarySub) : null,
+    [summary, summaryMeta, summarySub]
   );
   const hasContent = useMemo(
     (): boolean => !!children && (!Array.isArray(children) || children.length !== 0),
@@ -55,11 +56,11 @@ function Expander ({ children, className, isOpen, summary, summaryMeta, withDot,
   );
 
   return (
-    <div
-      className={`ui--Expander ${isExpanded && 'isExpanded'} ${hasContent && 'hasContent'} ${className}`}
-      onClick={toggleExpanded}
-    >
-      <div className='ui--Expander-summary'>
+    <div className={`ui--Expander ${isExpanded && 'isExpanded'} ${hasContent && 'hasContent'} ${className}`}>
+      <div
+        className='ui--Expander-summary'
+        onClick={toggleExpanded}
+      >
         <div className='ui--Expander-summary-header'>
           {hasContent
             ? <Icon name={isExpanded ? 'angle double down' : 'angle double right'} />
@@ -73,19 +74,27 @@ function Expander ({ children, className, isOpen, summary, summaryMeta, withDot,
         )}
       </div>
       {hasContent && (isExpanded || withHidden) && (
-        <div className='ui--Expander-contents'>{children}</div>
+        <div className='ui--Expander-content'>{children}</div>
       )}
     </div>
   );
 }
 
 export default React.memo(styled(Expander)`
-  &:not(.isExpanded) .ui--Expander-contents {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:not(.isExpanded) .ui--Expander-content {
     display: none;
   }
 
-  &.isExpanded .ui--Expander-contents {
+  &.isExpanded .ui--Expander-content {
     margin-top: 0.5rem;
+
+    .body.column {
+      justify-content: end;
+    }
   }
 
   &.hasContent .ui--Expander-summary {
@@ -93,11 +102,19 @@ export default React.memo(styled(Expander)`
   }
 
   .ui--Expander-summary {
-    display: block;
     margin: 0;
+    min-width: 12rem;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+    .ui--Expander-summary-header > .ui--FormatBalance {
+      min-width: 12rem;
+    }
+
+    > div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     i.icon {
       margin-right: 0.5rem;

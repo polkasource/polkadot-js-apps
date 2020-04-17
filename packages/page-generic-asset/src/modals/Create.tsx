@@ -23,6 +23,7 @@ function Create ({ onClose, onRegister }: Props): React.ReactElement<Props> {
   const [name, setName] = useState('new asset');
 
   const _onChangeAssetId = (assetId: BN | undefined): void => setAssetId(assetId || new BN(0));
+
   const _onCommit = (): void => {
     onRegister(assetId, name);
     onClose();
@@ -50,11 +51,11 @@ function Create ({ onClose, onRegister }: Props): React.ReactElement<Props> {
       </Modal.Content>
       <Modal.Actions onCancel={onClose}>
         <Button
+          icon='registered'
           isDisabled={!name}
           isPrimary
-          onClick={onClose}
           label={t('Register')}
-          icon='registered'
+          onClick={onClose}
         />
       </Modal.Actions>
     </Modal>

@@ -2,13 +2,14 @@
 // This software may be modified and distributed under the terms
 // of the Apache-2.0 license. See the LICENSE file for details.
 
-import { DeriveAccountInfo } from '@polkadot/api-derive/types';
+import { DeriveAccountInfo, DeriveBalancesAll } from '@polkadot/api-derive/types';
 import { ActionStatus } from '@polkadot/react-components/Status/types';
 import { RecoveryConfig } from '@polkadot/types/interfaces';
+import { SortedAccount } from './types';
 
 import React, { useCallback, useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { AddressInfo, AddressSmall, Badge, Button, ChainLock, Forget, Icon, IdentityIcon, Input, InputTags, LinkExternal, Menu, Popup, Tag } from '@polkadot/react-components';
+import { AddressInfo, AddressMini, AddressSmall, Badge, Button, ChainLock, CryptoType, Forget, Icon, IdentityIcon, Input, InputTags, LinkExternal, Menu, Popup, Tag } from '@polkadot/react-components';
 import { useApi, useCall, useToggle } from '@polkadot/react-hooks';
 import { Option } from '@polkadot/types';
 import keyring from '@polkadot/ui-keyring';
@@ -23,21 +24,31 @@ import RecoverAccount from './modals/RecoverAccount';
 import RecoverSetup from './modals/RecoverSetup';
 import Transfer from './modals/Transfer';
 
-interface Props {
-  address: string;
+interface Props extends SortedAccount {
   className?: string;
   filter: string;
-  isFavorite: boolean;
   toggleFavorite: (address: string) => void;
 }
 
-function Account ({ address, className, filter, isFavorite, toggleFavorite }: Props): React.ReactElement<Props> | null {
+function calcVisible (filter: string, name: string, tags: string[]): boolean {
+  if (filter.length === 0) {
+    return true;
+  }
+
+  const _filter = filter.toLowerCase();
+
+  return tags.reduce((result: boolean, tag: string): boolean => {
+    return result || tag.toLowerCase().includes(_filter);
+  }, name.toLowerCase().includes(_filter));
+}
+
+function Account ({ account: { address, meta }, className, filter, isFavorite, toggleFavorite }: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const api = useApi();
-  const info = useCall<DeriveAccountInfo>(api.api.derive.accounts.info as any, [address]);
+  const info = useCall<DeriveAccountInfo>(api.api.derive.accounts.info, [address]);
+  const balancesAll = useCall<DeriveBalancesAll>(api.api.derive.balances.all, [address]);
   const recoveryInfo = useCall<RecoveryConfig | null>(api.api.query.recovery?.recoverable, [address], {
-    transform: (opt: Option<RecoveryConfig>): RecoveryConfig | null =>
-      opt.unwrapOr(null)
+    transform: (opt: Option<RecoveryConfig>) => opt.unwrapOr(null)
   });
   const [tags, setTags] = useState<string[]>([]);
   const [accName, setAccName] = useState('');
@@ -87,23 +98,16 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
   }, [address, _setTags]);
 
   useEffect((): void => {
-    if (filter.length === 0) {
-      setIsVisible(true);
-    } else {
-      const _filter = filter.toLowerCase();
-
-      setIsVisible(
-        tags.reduce((result: boolean, tag: string): boolean => {
-          return result || tag.toLowerCase().includes(_filter);
-        }, accName.toLowerCase().includes(_filter))
-      );
-    }
+    setIsVisible(
+      calcVisible(filter, accName, tags)
+    );
   }, [accName, filter, tags]);
 
   const _onFavorite = useCallback(
     (): void => toggleFavorite(address),
     [address, toggleFavorite]
   );
+
   const _onGenesisChange = useCallback(
     (genesisHash: string | null): void => {
       const account = keyring.getPair(address);
@@ -114,6 +118,7 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
     },
     [address]
   );
+
   const _saveName = useCallback(
     (): void => {
       toggleEditName();
@@ -132,6 +137,7 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
     },
     [accName, address, toggleEditName]
   );
+
   const _saveTags = useCallback(
     (): void => {
       toggleEditTags();
@@ -150,6 +156,7 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
     },
     [address, tags, toggleEditTags]
   );
+
   const _onForget = useCallback(
     (): void => {
       if (!address) {
@@ -228,12 +235,13 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
       </td>
       <td className='address'>
         <AddressSmall
+          onClickName={toggleEditName}
           overrideName={
             isEditingName
               ? (
                 <Input
-                  className='name--input'
                   autoFocus
+                  className='name--input'
                   defaultValue={accName}
                   onBlur={_saveName}
                   onChange={setAccName}
@@ -243,7 +251,6 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
               )
               : undefined
           }
-          onClickName={toggleEditName}
           toggle={isEditingName}
           value={address}
         />
@@ -264,9 +271,9 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
         {isForgetOpen && (
           <Forget
             address={address}
-            onForget={_onForget}
             key='modal-forget-account'
             onClose={toggleForget}
+            onForget={_onForget}
           />
         )}
         {isIdentityOpen && (
@@ -305,25 +312,39 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
           />
         )}
       </td>
-      <td>
+      <td className='address'>
+        {meta.parentAddress && (
+          <AddressMini value={meta.parentAddress} />
+        )}
+      </td>
+      <td className='number'>
+        <CryptoType accountId={address} />
+      </td>
+      <td className='all'>
         {isEditingTags
           ? (
             <InputTags
+              defaultValue={tags}
               onBlur={_saveTags}
               onChange={_setTags}
               onClose={_saveTags}
               openOnFocus
-              defaultValue={tags}
               searchInput={{ autoFocus: true }}
               value={tags}
               withLabel={false}
             />
           )
           : (
-            <div className='tags--toggle' onClick={toggleEditTags}>
+            <div
+              className='tags--toggle'
+              onClick={toggleEditTags}
+            >
               {tags.length
                 ? tags.map((tag): React.ReactNode => (
-                  <Tag key={tag} label={tag} />
+                  <Tag
+                    key={tag}
+                    label={tag}
+                  />
                 ))
                 : <label>{t('no tags')}</label>
               }
@@ -331,7 +352,10 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
           )
         }
       </td>
-      <td className='top'>
+      <td className='number'>
+        {balancesAll && formatNumber(balancesAll.accountNonce)}
+      </td>
+      <td className='number'>
         <AddressInfo
           address={address}
           withBalance
@@ -339,14 +363,7 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
           withExtended={false}
         />
       </td>
-      <td className='top'>
-        <AddressInfo
-          address={address}
-          withBalance={false}
-          withExtended
-        />
-      </td>
-      <td className='number top'>
+      <td className='button'>
         <Button
           icon='paper plane'
           label={t('send')}
@@ -356,9 +373,8 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
         />
         <Popup
           className='theme--default'
+          isOpen={isSettingsOpen}
           onClose={toggleSettings}
-          open={isSettingsOpen}
-          position='bottom right'
           trigger={
             <Button
               icon='setting'
@@ -368,9 +384,9 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
           }
         >
           <Menu
-            vertical
-            text
             onClick={toggleSettings}
+            text
+            vertical
           >
             <Menu.Item
               disabled={!api.api.tx.identity?.setIdentity}
@@ -429,7 +445,7 @@ function Account ({ address, className, filter, isFavorite, toggleFavorite }: Pr
           </Menu>
         </Popup>
       </td>
-      <td className='mini top'>
+      <td className='mini'>
         <LinkExternal
           className='ui--AddressCard-exporer-link'
           data={address}

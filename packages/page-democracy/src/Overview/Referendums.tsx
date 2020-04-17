@@ -5,7 +5,7 @@
 import { DeriveReferendumExt } from '@polkadot/api-derive/types';
 
 import React from 'react';
-import { Spinner, Table } from '@polkadot/react-components';
+import { Table } from '@polkadot/react-components';
 import { useApi, useCall } from '@polkadot/react-hooks';
 
 import Referendum from './Referendum';
@@ -21,26 +21,25 @@ function Referendums ({ className }: Props): React.ReactElement<Props> {
   const referendums = useCall<DeriveReferendumExt[]>(api.derive.democracy.referendums, []);
 
   return (
-    <div className={`proposalSection ${className}`}>
-      <h1>{t('referenda')}</h1>
-      {referendums
-        ? referendums.length
-          ? (
-            <Table>
-              <Table.Body>
-                {referendums.map((referendum): React.ReactNode => (
-                  <Referendum
-                    key={referendum.index.toString()}
-                    value={referendum}
-                  />
-                ))}
-              </Table.Body>
-            </Table>
-          )
-          : t('No active referendums')
-        : <Spinner />
-      }
-    </div>
+    <Table
+      className={className}
+      empty={referendums && t('No active referendums')}
+      header={[
+        [t('referenda'), 'start', 2],
+        [t('remaining')],
+        [t('activate')],
+        [t('aye')],
+        [t('nay')],
+        [undefined, undefined, 3]
+      ]}
+    >
+      {referendums?.map((referendum): React.ReactNode => (
+        <Referendum
+          key={referendum.index.toString()}
+          value={referendum}
+        />
+      ))}
+    </Table>
   );
 }
 

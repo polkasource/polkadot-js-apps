@@ -11,8 +11,13 @@ interface Props extends BareProps {
   color: string;
 }
 
-function ChainColorIndicator ({ color, className }: Props): React.ReactElement<Props> {
-  return <div color={color} className={className}/>;
+function ChainColorIndicator ({ className, color }: Props): React.ReactElement<Props> {
+  return (
+    <div
+      className={className}
+      color={color}
+    />
+  );
 }
 
 export default React.memo(styled(ChainColorIndicator)`

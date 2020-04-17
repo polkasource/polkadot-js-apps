@@ -11,7 +11,7 @@ import { useTranslation } from '../translate';
 
 interface Props {
   className?: string;
-  members: string[];
+  members?: string[];
   prime?: AccountId | null;
 }
 
@@ -19,34 +19,31 @@ function Members ({ className, members, prime }: Props): React.ReactElement<Prop
   const { t } = useTranslation();
 
   return (
-    <div className={className}>
-      {members.length
-        ? (
-          <Table>
-            <Table.Body>
-              {members.map((accountId): React.ReactNode => (
-                <tr key={accountId.toString()}>
-                  <td className='all address'>
-                    <AddressSmall value={accountId} />
-                  </td>
-                  <td className='together top padtop'>
-                    {prime?.eq(accountId) && (
-                      <Tag
-                        color='green'
-                        hover={t('Committee prime member, default voting')}
-                        label={t('prime member')}
-                      />
-                    )}
-                  </td>
-                  <td className='all'>&nbsp;</td>
-                </tr>
-              ))}
-            </Table.Body>
-          </Table>
-        )
-        : t('No members found')
-      }
-    </div>
+    <Table
+      className={className}
+      empty={members && t('No members found')}
+      header={[
+        [t('members'), 'start', 3]
+      ]}
+    >
+      {members?.map((accountId): React.ReactNode => (
+        <tr key={accountId.toString()}>
+          <td className='address'>
+            <AddressSmall value={accountId} />
+          </td>
+          <td>
+            {prime?.eq(accountId) && (
+              <Tag
+                color='green'
+                hover={t('Committee prime member, default voting')}
+                label={t('prime member')}
+              />
+            )}
+          </td>
+          <td className='all'>&nbsp;</td>
+        </tr>
+      ))}
+    </Table>
   );
 }
 

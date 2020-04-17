@@ -5,7 +5,7 @@
 import { DeriveProposalExternal } from '@polkadot/api-derive/types';
 
 import React from 'react';
-import { Spinner } from '@polkadot/react-components';
+import { Table } from '@polkadot/react-components';
 import { useApi, useCall } from '@polkadot/react-hooks';
 
 import { useTranslation } from '../translate';
@@ -21,15 +21,18 @@ function Externals ({ className }: Props): React.ReactElement<Props> | null {
   const external = useCall<DeriveProposalExternal | null>(api.derive.democracy.nextExternal, []);
 
   return (
-    <div className={`proposalSection ${className}`}>
-      <h1>{t('external')}</h1>
-      {!external
-        ? external === null
-          ? t('No external proposal')
-          : <Spinner />
-        : <External value={external} />
-      }
-    </div>
+    <Table
+      className={className}
+      empty={external === null && t('No external proposal')}
+      header={[
+        [t('external'), 'start'],
+        [t('proposer'), 'address'],
+        [t('locked')],
+        []
+      ]}
+    >
+      {external && <External value={external} />}
+    </Table>
   );
 }
 
