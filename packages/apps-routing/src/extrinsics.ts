@@ -4,19 +4,17 @@
 
 import { Route } from './types';
 
-import Extrinsics from '@polkadot/app-extrinsics';
+import Component from '@polkadot/app-extrinsics';
 
-const route: Route = {
-  Component: Extrinsics,
-  display: {
-    needsAccounts: true,
-    needsApi: []
-  },
-  i18n: {
-    defaultValue: 'Extrinsics'
-  },
-  icon: 'sync',
-  name: 'extrinsics'
-};
-
-export default route;
+export default function create (t: <T = string> (key: string, text: string, options: { ns: string }) => T): Route {
+  return {
+    Component,
+    display: {
+      needsAccounts: true,
+      needsApi: []
+    },
+    icon: 'sync',
+    name: 'extrinsics',
+    text: t<string>('nav.extrinsics', 'Extrinsics', { ns: 'apps-routing' })
+  };
+}

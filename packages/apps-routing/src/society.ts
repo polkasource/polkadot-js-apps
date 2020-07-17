@@ -4,20 +4,20 @@
 
 import { Route } from './types';
 
-import Society from '@polkadot/app-society';
+import Component, { useCounter } from '@polkadot/app-society';
 
-const route: Route = {
-  Component: Society,
-  display: {
-    needsApi: [
-      'query.society.pot'
-    ]
-  },
-  i18n: {
-    defaultValue: 'Society'
-  },
-  icon: 'grab',
-  name: 'society'
-};
-
-export default route;
+export default function create (t: <T = string> (key: string, text: string, options: { ns: string }) => T): Route {
+  return {
+    Component,
+    display: {
+      needsAccounts: true,
+      needsApi: [
+        'query.society.pot'
+      ]
+    },
+    icon: 'hand-spock',
+    name: 'society',
+    text: t<string>('nav.society', 'Society', { ns: 'apps-routing' }),
+    useCounter
+  };
+}

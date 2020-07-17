@@ -2,27 +2,38 @@
 // This software may be modified and distributed under the terms
 // of the Apache-2.0 license. See the LICENSE file for details.
 
+import { TFunction } from 'i18next';
 import { Option } from './types';
 
-// These are the available languages. For each there are translation files available
-// in packages/apps/public/locales (Don't edit unless adding a new translation)
-export default [
-  {
-    text: 'Default browser language (auto-detect)',
-    value: 'default',
-    withI18n: true
-  },
-  {
-    text: 'English',
-    value: 'en'
-  },
-  {
-    text: '汉语',
-    value: 'zh'
-  }
-  // For ja, we only have the settings page, remove until comprehensive
-  // , {
-  //   text: '日本語',
-  //   value: 'ja'
-  // }
-].map((option): Option => ({ ...option }));
+export default function create (t: TFunction): Option[] {
+  return [
+    {
+      text: t<string>('lng.detect', 'Default browser language (auto-detect)', { ns: 'apps-config' }),
+      value: 'default'
+    },
+    {
+      text: 'English',
+      value: 'en'
+    },
+    {
+      text: 'Español',
+      value: 'es'
+    },
+    {
+      text: '日本語',
+      value: 'ja'
+    },
+    {
+      text: 'Português',
+      value: 'pt'
+    },
+    {
+      text: 'русский',
+      value: 'ru'
+    },
+    {
+      text: '汉语',
+      value: 'zh'
+    }
+  ];
+}

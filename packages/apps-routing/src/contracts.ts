@@ -4,24 +4,19 @@
 
 import { Route } from './types';
 
-import Contracts from '@polkadot/app-contracts';
+import Component from '@polkadot/app-contracts';
 
-const route: Route = {
-  Component: Contracts,
-  display: {
-    needsAccounts: true,
-    needsApi: [
-      [
-        'tx.contracts.call', // substrate 2.x
-        'tx.contract.call' // substrate 1.x
+export default function create (t: <T = string> (key: string, text: string, options: { ns: string }) => T): Route {
+  return {
+    Component,
+    display: {
+      needsAccounts: true,
+      needsApi: [
+        'tx.contracts.call'
       ]
-    ]
-  },
-  i18n: {
-    defaultValue: 'Contracts'
-  },
-  icon: 'compress',
-  name: 'contracts'
-};
-
-export default route;
+    },
+    icon: 'compress',
+    name: 'contracts',
+    text: t<string>('nav.contracts', 'Contracts', { ns: 'apps-routing' })
+  };
+}

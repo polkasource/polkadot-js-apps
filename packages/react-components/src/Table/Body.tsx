@@ -15,7 +15,7 @@ interface Props {
   emptySpinner?: React.ReactNode;
 }
 
-function Body ({ children, className, empty, emptySpinner }: Props): React.ReactElement<Props> {
+function Body ({ children, className = '', empty, emptySpinner }: Props): React.ReactElement<Props> {
   return (
     <tbody className={className}>
       {children || (
@@ -30,27 +30,24 @@ function Body ({ children, className, empty, emptySpinner }: Props): React.React
 }
 
 export default React.memo(styled(Body)`
+  background: white;
+
   td {
-    border-top: 1px solid #e6e6e6;
     padding: 0.75rem 1rem;
     text-align: left;
     vertical-align: middle;
 
     &:first-child {
-      border-left: 1px solid #e6e6e6;
+      border-left: 1px solid #e4e6e8;
     }
 
     &:last-child {
-      border-right: 1px solid #e6e6e6;
+      border-right: 1px solid #e4e6e8;
     }
 
     label {
       display: block !important;
       white-space: nowrap;
-    }
-
-    i.icon {
-      cursor: pointer;
     }
 
     div.empty {
@@ -66,16 +63,17 @@ export default React.memo(styled(Body)`
       }
     }
 
-    &:hover label {
-      opacity: 1;
-    }
-
     &.address {
       min-width: 11rem;
-      padding: 0.85rem 1rem;
+      overflow-x: hidden;
+    }
+
+    &.badge {
+      padding: 0;
     }
 
     &.button {
+      padding: 0.5rem 0.25rem;
       text-align: right;
       white-space: nowrap;
 
@@ -119,56 +117,64 @@ export default React.memo(styled(Body)`
     }
 
     &.mini {
-      padding: 0 0.75rem 0 0;
-      white-space: nowrap;
+      padding: 0 !important;
+      width: fit-content;
+      white-space: normal;
+
+      > div {
+        margin-right: 0.75rem;
+        max-width: 3.8rem;
+        min-width: 3.8rem;
+      }
     }
 
-    &.favorite i.icon.isSelected {
+    &.favorite .ui--Icon.isSelected {
       color: darkorange;
     }
   }
 
   tr {
-    background: white;
+    &:nth-child(even) {
+      background: #f9f8f7;
+    }
 
-    &.isHighlight td {
-      background: #ffffed;
+    &:first-child td {
+      border-top: 1px solid #e4e6e8;
     }
 
     &:last-child td {
-      border-bottom: 1px solid #e6e6e6;
+      border-bottom: 1px solid #e4e6e8;
     }
 
     &:first-child {
       td:first-child {
-        border-radius: 0.25rem 0 0 0;
+        border-top-left-radius: 0.25rem;
       }
 
       td:last-child {
-        border-radius: 0 0.25rem 0 0;
+        border-top-right-radius: 0.25rem;
       }
     }
 
     &:last-child {
       td:first-child {
-        border-radius: 0 0 0 0.25rem;
+        border-bottom-left-radius: 0.25rem;
       }
 
       td:last-child {
-        border-radius: 0 0 0.25rem 0;
+        border-bottom-right-radius: 0.25rem;
       }
     }
 
-    &:not(:hover) {
-      .ui.button:not(.isIcon):not(.disabled) {
-        background: #eee !important;
-        color: #555 !important;
-      }
+    .ui--Button:not(.isIcon):not(:hover) {
+      background: transparent !important;
+      box-shadow: none !important;
+      color: #555 !important;
+    }
 
-      .ui.toggle.checkbox input:checked~.box:before,
-      .ui.toggle.checkbox input:checked~label:before {
-        background-color: #eee !important;
-      }
+    .ui.toggle.checkbox input:checked~.box:before,
+    .ui.toggle.checkbox input:checked~label:before {
+      background-color: #eee !important;
     }
   }
 `);

@@ -4,15 +4,16 @@
 
 import { DeriveStakingOverview } from '@polkadot/api-derive/types';
 import { AppProps as Props } from '@polkadot/react-components/types';
-import { AccountId, ElectionStatus } from '@polkadot/types/interfaces';
+import { ElectionStatus } from '@polkadot/types/interfaces';
 
-import React, { useEffect, useMemo, useReducer, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Route, Switch } from 'react-router';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { HelpOverlay } from '@polkadot/react-components';
 import Tabs from '@polkadot/react-components/Tabs';
-import { useAccounts, useApi, useCall } from '@polkadot/react-hooks';
+import { useAccounts, useApi, useCall, useFavorites, useOwnStashInfos, useStashIds } from '@polkadot/react-hooks';
+import { isFunction } from '@polkadot/util';
 
 import basicMd from './md/basic.md';
 import Actions from './Actions';
@@ -21,32 +22,29 @@ import Payouts from './Payouts';
 import Query from './Query';
 import Summary from './Overview/Summary';
 import Targets from './Targets';
+import { STORE_FAVS_BASE } from './constants';
 import { useTranslation } from './translate';
+import useSortedTargets from './useSortedTargets';
 
 interface Validators {
   next?: string[];
   validators?: string[];
 }
 
-function reduceNominators (nominators: string[], additional: string[]): string[] {
-  return nominators.concat(...additional.filter((nominator): boolean => !nominators.includes(nominator)));
-}
-
-function StakingApp ({ basePath, className }: Props): React.ReactElement<Props> {
+function StakingApp ({ basePath, className = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { api } = useApi();
   const { hasAccounts } = useAccounts();
   const { pathname } = useLocation();
   const [{ next, validators }, setValidators] = useState<Validators>({});
-  const allStashes = useCall<string[]>(api.derive.staking.stashes, [], {
-    transform: (stashes: AccountId[]): string[] =>
-      stashes.map((accountId): string => accountId.toString())
-  });
+  const [favorites, toggleFavorite] = useFavorites(STORE_FAVS_BASE);
+  const allStashes = useStashIds();
+  const ownStashes = useOwnStashInfos();
+  const targets = useSortedTargets(favorites);
   const stakingOverview = useCall<DeriveStakingOverview>(api.derive.staking.overview, []);
   const isInElection = useCall<boolean>(api.query.staking?.eraElectionStatus, [], {
     transform: (status: ElectionStatus) => status.isOpen
   });
-  const [nominators, dispatchNominators] = useReducer(reduceNominators, [] as string[]);
   const hasQueries = useMemo(
     (): boolean =>
       hasAccounts && !!(api.query.imOnline?.authoredBlocks) && !!(api.query.staking.activeEra),
@@ -56,36 +54,37 @@ function StakingApp ({ basePath, className }: Props): React.ReactElement<Props> 
     {
       isRoot: true,
       name: 'overview',
-      text: t('Staking overview')
+      text: t<string>('Staking overview')
     },
     {
       name: 'actions',
-      text: t('Account actions')
+      text: t<string>('Account actions')
     },
-    api.query.staking.activeEra
+    isFunction(api.query.staking.activeEra)
       ? {
         name: 'payout',
-        text: 'Payouts'
+        text: t<string>('Payouts')
       }
       : null,
     {
-      name: 'calculator',
-      text: t('Calculator')
+      alias: 'returns',
+      name: 'targets',
+      text: t<string>('Targets')
     },
     {
       name: 'waiting',
-      text: t('Waiting')
+      text: t<string>('Waiting')
     },
     {
       hasParams: true,
       name: 'query',
-      text: t('Validator stats')
+      text: t<string>('Validator stats')
     }
   ].filter((q): q is { name: string; text: string } => !!q), [api, t]);
   const hiddenTabs = useMemo(
     (): string[] =>
       !hasAccounts
-        ? ['actions', 'query']
+        ? ['actions', 'payouts', 'query']
         : !hasQueries
           ? ['returns', 'query']
           : [],
@@ -101,7 +100,7 @@ function StakingApp ({ basePath, className }: Props): React.ReactElement<Props> 
 
   return (
     <main className={`staking--App ${className}`}>
-      <HelpOverlay md={basicMd} />
+      <HelpOverlay md={basicMd as string} />
       <header>
         <Tabs
           basePath={basePath}
@@ -112,42 +111,52 @@ function StakingApp ({ basePath, className }: Props): React.ReactElement<Props> 
       <Summary
         isVisible={pathname === basePath}
         next={next}
-        nominators={nominators}
+        nominators={targets.nominators}
         stakingOverview={stakingOverview}
       />
       <Switch>
-        <Route path={`${basePath}/calculator`}>
-          <Targets />
-        </Route>
         <Route path={`${basePath}/payout`}>
           <Payouts isInElection={isInElection} />
         </Route>
         <Route path={[`${basePath}/query/:value`, `${basePath}/query`]}>
           <Query />
         </Route>
+        <Route path={`${basePath}/targets`}>
+          <Targets
+            isInElection={isInElection}
+            next={next}
+            ownStashes={ownStashes}
+            stakingOverview={stakingOverview}
+            targets={targets}
+            toggleFavorite={toggleFavorite}
+          />
+        </Route>
         <Route path={`${basePath}/waiting`}>
           <Overview
-            className={`${basePath}/waiting` === pathname ? '' : 'staking--hidden'}
+            favorites={favorites}
             hasQueries={hasQueries}
             isIntentions
             next={next}
             stakingOverview={stakingOverview}
+            toggleFavorite={toggleFavorite}
           />
         </Route>
       </Switch>
       <Actions
-        allStashes={allStashes}
         className={pathname === `${basePath}/actions` ? '' : 'staking--hidden'}
         isInElection={isInElection}
         next={next}
+        ownStashes={ownStashes}
+        targets={targets}
         validators={validators}
       />
       <Overview
         className={basePath === pathname ? '' : 'staking--hidden'}
+        favorites={favorites}
         hasQueries={hasQueries}
         next={next}
-        setNominators={dispatchNominators}
         stakingOverview={stakingOverview}
+        toggleFavorite={toggleFavorite}
       />
     </main>
   );
@@ -167,6 +176,16 @@ export default React.memo(styled(StakingApp)`
 
     .ui--Spinner {
       margin: 2.5rem auto;
+    }
+  }
+
+  .staking--optionsBar {
+    text-align: right;
+
+    .staking--buttonToggle {
+      display: inline-block;
+      margin-right: 1rem;
+      margin-top: 0.5rem;
     }
   }
 `);

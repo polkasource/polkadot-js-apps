@@ -1,4 +1,4 @@
-// Copyright 2017-2020 @polkadot/app-123code authors & contributors
+// Copyright 2017-2020 @polkadot/app-js authors & contributors
 // This software may be modified and distributed under the terms
 // of the Apache-2.0 license. See the LICENSE file for details.
 
@@ -21,11 +21,11 @@ function SudoApp ({ basePath }: Props): React.ReactElement<Props> {
     {
       isRoot: true,
       name: 'index',
-      text: t('Sudo access')
+      text: t<string>('Sudo access')
     },
     {
       name: 'key',
-      text: t('Set sudo key')
+      text: t<string>('Set sudo key')
     }
   ], [t]);
 
@@ -59,8 +59,8 @@ function SudoApp ({ basePath }: Props): React.ReactElement<Props> {
         : (
           <article className='error padded'>
             <div>
-              <Icon name='ban' />
-              {t('You do not have access to the current sudo key')}
+              <Icon icon='ban' />
+              {t<string>('You do not have access to the current sudo key')}
             </div>
           </article>
         )

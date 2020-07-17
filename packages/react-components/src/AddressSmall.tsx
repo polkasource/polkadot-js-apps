@@ -11,46 +11,40 @@ import AccountName from './AccountName';
 import IdentityIcon from './IdentityIcon';
 
 interface Props {
+  children?: React.ReactNode;
   className?: string;
   defaultName?: string;
   onClickName?: () => void;
   overrideName?: React.ReactNode;
-  toggle?: boolean;
+  withSidebar?: boolean;
+  toggle?: unknown;
   value?: string | Address | AccountId | null | Uint8Array;
 }
 
-function AddressSmall ({ className, defaultName, onClickName, overrideName, toggle, value }: Props): React.ReactElement<Props> {
+function AddressSmall ({ children, className = '', defaultName, onClickName, overrideName, toggle, value, withSidebar = true }: Props): React.ReactElement<Props> {
   return (
     <div className={`ui--AddressSmall ${className}`}>
-      <IdentityIcon
-        size={32}
-        value={value as Uint8Array}
-      />
-      <div className='nameInfo'>
-        <AccountName
-          className={(overrideName || !onClickName) ? '' : 'name--clickable'}
-          defaultName={defaultName}
-          onClick={onClickName}
-          override={overrideName}
-          toggle={toggle}
-          value={value}
-        />
-      </div>
+      <IdentityIcon value={value as Uint8Array} />
+      <AccountName
+        className={withSidebar ? 'withSidebar' : ''}
+        defaultName={defaultName}
+        onClick={onClickName}
+        override={overrideName}
+        toggle={toggle}
+        value={value}
+        withSidebar={withSidebar}
+      >
+        {children}
+      </AccountName>
     </div>
   );
 }
 
 export default React.memo(styled(AddressSmall)`
-  vertical-align: middle;
   white-space: nowrap;
 
-  .name--clickable {
-    cursor: pointer;
-  }
-
   .ui--IdentityIcon,
-  .nameInfo {
-    display: inline-block;
+  .ui--AccountName {
     vertical-align: middle;
   }
 
@@ -58,11 +52,37 @@ export default React.memo(styled(AddressSmall)`
     margin-right: 0.75rem;
   }
 
-  .nameInfo {
-    > div {
+  .ui--AccountName {
+    display: inline-block;
+    max-width: 24rem;
+    overflow: hidden;
+
+    &.withSidebar {
+      cursor: help;
+    }
+
+    @media only screen and (max-width: 1800px) {
+      max-width: 22rem;
+    }
+
+    @media only screen and (max-width: 1700px) {
+      max-width: 20rem;
+    }
+
+    @media only screen and (max-width: 1600px) {
+      max-width: 18rem;
+    }
+
+    @media only screen and (max-width: 1500px) {
       max-width: 16rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+
+    @media only screen and (max-width: 1400px) {
+      max-width: 14rem;
+    }
+
+    @media only screen and (max-width: 1300px) {
+      max-width: 12rem;
     }
   }
 `);

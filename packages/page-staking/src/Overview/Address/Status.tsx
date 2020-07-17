@@ -4,45 +4,36 @@
 
 import React from 'react';
 import { Badge, Icon } from '@polkadot/react-components';
-import { formatNumber } from '@polkadot/util';
 
-import { useTranslation } from '../../translate';
+import MaxBadge from '../../MaxBadge';
 
 interface Props {
   isElected: boolean;
+  numNominators?: number;
   onlineCount?: false | number;
   onlineMessage?: boolean;
 }
 
-function Status ({ isElected, onlineCount, onlineMessage }: Props): React.ReactElement<Props> {
-  const { t } = useTranslation();
-
+function Status ({ isElected, numNominators, onlineCount, onlineMessage }: Props): React.ReactElement<Props> {
   return (
-    <td className='together'>
-      {isElected && (
-        <Badge
-          hover={t('Selected for the next session')}
-          info={<Icon name='chevron right' />}
-          isInline
-          isTooltip
-          type='next'
-        />
-      )}
+    <>
+      {isElected
+        ? (
+          <Badge
+            color='blue'
+            icon='chevron-right'
+          />
+        )
+        : <Badge color='transparent' />
+      }
       {(!!onlineCount || onlineMessage) && (
         <Badge
-          hover={t('Active with {{blocks}} blocks authored{{hasMessage}} heartbeat message', {
-            replace: {
-              blocks: formatNumber(onlineCount || 0),
-              hasMessage: onlineMessage ? ' and a' : ', no'
-            }
-          })}
-          info={<Icon name='check' />}
-          isInline
-          isTooltip
-          type='online'
+          color='green'
+          info={onlineCount || <Icon icon='envelope' />}
         />
       )}
-    </td>
+      <MaxBadge numNominators={numNominators} />
+    </>
   );
 }
 

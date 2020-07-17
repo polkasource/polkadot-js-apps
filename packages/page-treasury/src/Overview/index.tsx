@@ -21,44 +21,45 @@ function Overview ({ className }: Props): React.ReactElement<Props> {
   const { isMember, members } = useMembers();
 
   const mountedRef = useIsMountedRef();
-  const [hashTrigger, triggerHashes] = useIncrement();
-  const [hashes, setHashes] = useState<string[] | null>(null);
+  const [tipHashTrigger, triggerTipHashes] = useIncrement();
+  const [tipHashes, setTipHashes] = useState<string[] | null>(null);
 
   useEffect((): void => {
-    if (hashTrigger && mountedRef.current) {
+    if (tipHashTrigger && mountedRef.current) {
       api.query.treasury.tips.keys().then((keys) =>
-        mountedRef.current && setHashes(
+        mountedRef.current && setTipHashes(
           keys.map((key) => key.args[0].toHex())
         )
-      );
+      ).catch(console.error);
     }
-  }, [api, hashTrigger, mountedRef]);
+  }, [api, tipHashTrigger, mountedRef]);
 
   return (
     <div className={className}>
       <Summary
-        approvalCount={info?.proposals.length}
-        proposalCount={info?.approvals.length}
+        approvalCount={info?.approvals.length}
+        proposalCount={info?.proposals.length}
       />
       <Button.Group>
         <ProposalCreate />
-        <Button.Or />
         <TipCreate
           members={members}
-          refresh={triggerHashes}
+          refresh={triggerTipHashes}
         />
       </Button.Group>
       <Proposals
         isMember={isMember}
+        members={members}
         proposals={info?.proposals}
       />
       <Proposals
         isApprovals
         isMember={isMember}
+        members={members}
         proposals={info?.approvals}
       />
       <Tips
-        hashes={hashes}
+        hashes={tipHashes}
         isMember={isMember}
         members={members}
       />
